@@ -108,7 +108,7 @@ export default {
   components: { HeaderShayna, FooterShayna, carousel, RelatedproductShayna },
   data() {
     return {
-      gambar_default: "img/mickey1.jpg",
+      gambar_default: "",
       thumbs: [
         "img/mickey1.jpg",
         "img/mickey2.jpg",
@@ -125,6 +125,13 @@ export default {
     changeImage(urlImage) {
       this.gambar_default = urlImage;
     },
+
+    setDataPicture(data) {
+      // replace object productdetail dengan data dari api
+      this.productDetails = data;
+      // replace product gambar default dengan data dari api (galleries)
+      this.gambar_default = data.galleries[0].photo;
+    },
   },
   mounted() {
     axios
@@ -133,7 +140,7 @@ export default {
           id: this.idProduct,
         },
       })
-      .then((res) => (this.productDetails = res.data.data))
+      .then((res) => (this.setDataPicture(res.data.data)))
       .catch((err) => console.log(err));
   },
 };
