@@ -26,42 +26,23 @@
                 <div class="product-pic-zoom">
                   <img class="product-big-img" :src="gambar_default" alt="" />
                 </div>
-                <div class="product-thumbs">
+                <div
+                  class="product-thumbs"
+                  v-if="productDetails.galleries != null"
+                >
                   <carousel
                     :dots="false"
                     :nav="false"
                     class="product-thumbs-track ps-slider"
                   >
                     <div
+                      v-for="ss in productDetails.galleries"
+                      :key="ss.id"
                       class="pt"
-                      @click="changeImage(thumbs[0])"
-                      :class="thumbs[0] == gambar_default ? 'active' : ''"
+                      @click="changeImage(ss.photo)"
+                      :class="ss.photo == gambar_default ? 'active' : ''"
                     >
-                      <img src="img/mickey1.jpg" alt="" />
-                    </div>
-
-                    <div
-                      class="pt"
-                      @click="changeImage(thumbs[1])"
-                      :class="thumbs[1] == gambar_default ? 'active' : ''"
-                    >
-                      <img src="img/mickey2.jpg" alt="" />
-                    </div>
-
-                    <div
-                      class="pt"
-                      @click="changeImage(thumbs[2])"
-                      :class="thumbs[2] == gambar_default ? 'active' : ''"
-                    >
-                      <img src="img/mickey3.jpg" alt="" />
-                    </div>
-
-                    <div
-                      class="pt"
-                      @click="changeImage(thumbs[3])"
-                      :class="thumbs[3] == gambar_default ? 'active' : ''"
-                    >
-                      <img src="img/mickey4.jpg" alt="" />
+                      <img :src="ss.photo" alt="" />
                     </div>
                   </carousel>
                 </div>
@@ -77,9 +58,16 @@
                     <h4>${{ productDetails.price }}</h4>
                   </div>
                   <div class="quantity">
-                    <router-link to="/cart" class="primary-btn pd-cart"
-                      >Add To Cart</router-link
+                    <router-link to="/cart" class="primary-btn pd-cart">
+                    <a
+                      @click="
+                        saveKeranjang(productDetails.id, productDetails.name, productDetails.price, productDetails.galleries[0].photo)
+                      "
+                      href="#"
+                      class="primary-btn pd-cart"
+                      >Add To Cart</a
                     >
+                    </router-link>
                   </div>
                 </div>
               </div>
@@ -109,16 +97,11 @@ export default {
   data() {
     return {
       gambar_default: "",
-      thumbs: [
-        "img/mickey1.jpg",
-        "img/mickey2.jpg",
-        "img/mickey3.jpg",
-        "img/mickey4.jpg",
-      ],
       // mengambil id dari route
       idProduct: this.$route.params.id,
 
       productDetails: [],
+      keranjangUser: [],
     };
   },
   methods: {
@@ -132,15 +115,36 @@ export default {
       // replace product gambar default dengan data dari api (galleries)
       this.gambar_default = data.galleries[0].photo;
     },
+
+    saveKeranjang(idProduct, nameProduct, priceProduct, photoProduct) {
+      var productStored = {
+        id: idProduct,
+        name: nameProduct,
+        price: priceProduct,
+        photo: photoProduct
+      };
+
+      this.keranjangUser.push(productStored);
+      const parsed = JSON.stringify(this.keranjangUser);
+      localStorage.setItem("keranjangUser", parsed);
+    },
   },
   mounted() {
+    if (localStorage.getItem("keranjangUser")) {
+      try {
+        this.keranjangUser = JSON.parse(localStorage.getItem("keranjangUser"));
+      } catch (e) {
+        localStorage.removeItem("keranjangUser");
+      }
+    }
+
     axios
       .get("http://127.0.0.1:8001/api/products", {
         params: {
           id: this.idProduct,
         },
       })
-      .then((res) => (this.setDataPicture(res.data.data)))
+      .then((res) => this.setDataPicture(res.data.data))
       .catch((err) => console.log(err));
   },
 };
